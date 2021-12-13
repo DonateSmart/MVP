@@ -5,41 +5,31 @@ import databaseManager
 app = Flask(__name__)
 
 
-@app.route('/', methods=['GET', 'POST'])
-def login():
+@app.route('/')
+def index():
+    return render_template('login.html')
+
+# run databaseManager.py for first time to create database
+# source venv/bin/activate
+# run Flask application from terminal
+# export FLASK_APP=main.py
+# flask run
+@app.route('/userSignup', methods=['GET', 'POST'])
+def signup_user():
     error = None
-    print('HELLO')
     if request.method == 'POST':
-        print(request.form['username'] + " " + request.form['password']);
+        username = request.form['username']
+        password = request.form['password']
+        print(username, password)
+        save_new_user(username, password)
+
     return render_template('login.html', error=error)
 
 
-def save_new_user():
+def save_new_user(username, password):
     db = databaseManager.engine
     conn = db.connect()
-    print(databaseManager.meta.tables.keys())
 
     users = databaseManager.users
-
-
-    ins = users.insert().values(name='vvs', lastname='eqwe')
+    ins = users.insert().values(username=username, password=password)
     conn.execute(ins)
-
-    ins = users.insert().values(name='dasd', lastname='dasdasd')
-
-    conn.execute(ins)
-
-    conn.execute(users.insert(), [
-        {'name': 'dasda', 'lastname': 'vv'},
-        {'name': 'dasdasadas', 'lastname': 'vvv'},
-        {'name': 'sss', 'lastname': 'Sattar'},
-        {'name': 'ssss', 'lastname': 'sss'},
-    ])
-
-
-def main():
-    save_new_user()
-
-
-if __name__ == "__main__":
-    main()
