@@ -1,25 +1,19 @@
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
+from sqlalchemy import Column, String, Integer, create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+
+class User(Base):
+    __tablename__ = 'user'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(250), nullable=False)
+    password = Column(String(250), nullable=False)
+
 
 engine = create_engine('sqlite:///users.db', echo=True)
-meta = MetaData()
-users = Table(
-   'users', meta,
-   Column('id', Integer, primary_key=True),
-   Column('username', String),
-   Column('password', String),
-)
 
-
-def create_user_table():
-   meta.create_all(engine)
-
-
-def main():
-   create_user_table()
-
-
-if __name__ == "__main__":
-   main()
-
-
-
+session = sessionmaker()
+session.configure(bind=engine)
+Base.metadata.create_all(engine)
