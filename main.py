@@ -47,7 +47,7 @@ def login():
         message = 'username or password is wrong'
         conn_success = False
         uname = request.form['username']
-        pwd = request.form['password']
+        pwd = request.form['password'] # hash function to password sha256
         print(uname, pwd)
 
         s = databaseManager.session()
@@ -62,10 +62,21 @@ def login():
         if conn_success:
             message = 'connection is successful'
 
-        return render_template('login.html', message=message)
+        return user_info(row)
     else:
         return render_template('login.html')
 
+
+@app.route('/userInfo', methods=['GET', 'POST'])
+def user_info(row):
+    if request.method == 'POST':
+        username = row[0].username
+        firstname = row[0].firstname
+        lastname = row[0].lastname
+        url = row[0].url
+        mobile_phone = row[0].mobile_phone
+        return render_template('userInfo.html', username=username, firstname=firstname, lastname=lastname,
+                               url=url, mobile_phone=mobile_phone)
 
 
 @app.route('/listUsers')
