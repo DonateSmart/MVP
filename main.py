@@ -18,43 +18,51 @@ def index():
 # flask run
 @app.route('/userSignup', methods=['GET', 'POST'])
 def signup_user():
-    error = None
     if request.method == 'POST':
-        uname = request.form['username']
-        pwd = request.form['password']
-        print(uname, pwd)
-        user = User(name=uname, password=pwd)
+        username = request.form['username']
+        password = request.form['password']
+        firstname = request.form['firstname']
+        lastname = request.form['lastname']
+        url = request.form['url']
+        mobile_phone = request.form['mobile_phone']
+
+        print(username, password, firstname, lastname, url, mobile_phone)
+
+        user = User(username=username, password=password, firstname=firstname,
+                    lastname=lastname, url=url, mobile_phone=mobile_phone)
+
         s = databaseManager.session()
         s.add(user)
         s.commit()
-        message= "success"
+        message = "New user is created!"
+        return render_template('signup.html', message=message)
 
-    return render_template('signup.html', error=error, message=message)
+    else:
+        return render_template('signup.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    error = None
     if request.method == 'POST':
+        message = 'username or password is wrong'
         conn_success = False
         uname = request.form['username']
         pwd = request.form['password']
         print(uname, pwd)
 
         s = databaseManager.session()
-        result = s.execute(select(User).filter_by(name=uname))
+        result = s.execute(select(User).filter_by(username=uname))
 
         row = result.fetchone()
-        print('password:' + row[0].password)
-        if pwd == row[0].password:
-            conn_success = True
 
-        print('conn_success:' + str(conn_success))
+        if row != None:
+            if pwd == row[0].password:
+                conn_success = True
 
         if conn_success:
-            return render_template('list.html', error=error)
-        else:
-            return render_template('signup.html', error=error)
+            message = 'connection is successful'
+
+        return render_template('login.html', message=message)
     else:
         return render_template('login.html')
 
@@ -63,22 +71,14 @@ def login():
 @app.route('/listUsers')
 def listUsers():
     s = databaseManager.session()
-    results = s.execute(select(User).order_by(User.name))
+    results = s.execute(select(User).order_by(User.username))
     users = []
     for item in results.scalars():
-        users.append(item.name + ' ' + item.password)
-        print(item.name + ' ' + item.password)
+        users.append(item.username + ' ' + item.password)
+        print(item.username + ' ' + item.password)
 
     return render_template('list.html', members=users)
 
-
-def save_new_user(username, password):
-    db = databaseManager.engine
-    conn = db.connect()
-
-    users = databaseManager.users
-    ins = users.insert().values(username=username, password=password)
-    conn.execute(ins)
 
 
 app.run(debug=True)
