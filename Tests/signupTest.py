@@ -2,8 +2,13 @@ import unittest
 import main
 
 class MyTestCase(unittest.TestCase):
-    def test_something(self):
-        main.save_new_user()
+    def test_signup(self):
+        form = {'username': 'username1', 'password': 'pass1'}
+        # request = None
+        # request.form = form
+        # request.method = 'POST'
+        # main.signup_user(request)
+
 
 
 
