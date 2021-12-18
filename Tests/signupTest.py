@@ -10,7 +10,5 @@ class MyTestCase(unittest.TestCase):
         # main.signup_user(request)
 
 
-
-
 if __name__ == '__main__':
     unittest.main()

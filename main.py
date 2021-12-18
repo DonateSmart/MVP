@@ -1,11 +1,13 @@
-from flask import Flask, render_template, request
-from sqlalchemy import select
+import base64
+
+from flask import Flask, render_template, request, session, redirect
+from sqlalchemy import select, update
 
 import databaseManager
 from databaseManager import User
 
 app = Flask(__name__)
-
+app.secret_key = "daskdlaslddsa"
 
 @app.route('/')
 def index():
@@ -20,7 +22,9 @@ def index():
 def signup_user():
     if request.method == 'POST':
         username = request.form['username']
-        password = request.form['password']
+        password = request.form['password'].encode("utf-8")
+        encoded_password = base64.b64encode(password)
+
         firstname = request.form['firstname']
         lastname = request.form['lastname']
         url = request.form['url']
@@ -28,7 +32,7 @@ def signup_user():
 
         print(username, password, firstname, lastname, url, mobile_phone)
 
-        user = User(username=username, password=password, firstname=firstname,
+        user = User(username=username, password=encoded_password, firstname=firstname,
                     lastname=lastname, url=url, mobile_phone=mobile_phone)
 
         s = databaseManager.session()
@@ -47,7 +51,9 @@ def login():
         message = 'username or password is wrong'
         conn_success = False
         uname = request.form['username']
-        pwd = request.form['password'] # hash function to password sha256
+        pwd = request.form['password'].encode("utf-8")
+        encoded_password = base64.b64encode(pwd)
+
         print(uname, pwd)
 
         s = databaseManager.session()
@@ -56,27 +62,89 @@ def login():
         row = result.fetchone()
 
         if row != None:
-            if pwd == row[0].password:
+            if encoded_password == row[0].password:
                 conn_success = True
 
         if conn_success:
             message = 'connection is successful'
-
-        return user_info(row)
+            session['username'] = uname
+            return user_info()
+        else:
+            return render_template('login.html', message=message)
     else:
         return render_template('login.html')
 
+def get_user_info(username):
+    s = databaseManager.session()
+    result = s.execute(select(User).filter_by(username=username))
+
+    row = result.fetchone()
+
+    # username = row[0].username
+    # firstname = row[0].firstname
+    # lastname = row[0].lastname
+    # url = row[0].url
+    # mobile_phone = row[0].mobile_phone
+    return row[0]
+
 
 @app.route('/userInfo', methods=['GET', 'POST'])
-def user_info(row):
+def user_info():
+    if 'username' in session:
+        username = session['username']
+        user = get_user_info(username)
+        return render_template('userInfo.html', **userToDict(user))
+
+def userToDict(user):
+    d = {}
+    d['username'] = user.username
+    d['firstname'] = user.firstname
+    d['lastname'] = user.lastname
+    d['url'] = user.url
+    d['mobile_phone'] = user.mobile_phone
+    return d
+
+@app.route('/editUserInfo', methods=['GET', 'POST'])
+def edit_user_info():
     if request.method == 'POST':
-        username = row[0].username
-        firstname = row[0].firstname
-        lastname = row[0].lastname
-        url = row[0].url
-        mobile_phone = row[0].mobile_phone
-        return render_template('userInfo.html', username=username, firstname=firstname, lastname=lastname,
-                               url=url, mobile_phone=mobile_phone)
+        if 'username' in session:
+
+            username = session['username']
+
+            if request.form.get('username') != None and request.form.get('firstname') != None and \
+                    request.form.get('lastname') != None and request.form.get('url') != None \
+                    and request.form.get('mobile_phone') != None :
+
+                message = 'User info is saved!'
+
+                firstname = request.form['firstname']
+                lastname = request.form['lastname']
+                url = request.form['url']
+                mobile_phone = request.form['mobile_phone']
+
+                # update data in db
+
+                s = databaseManager.session()
+                stmt = update(User).where(User.username == username).values(firstname=firstname,lastname=lastname,
+                                                                                 url=url, mobile_phone=mobile_phone)
+                s.execute(stmt)
+
+
+                return render_template('userInfo.html', username=username, firstname=firstname, lastname=lastname,
+                                       url=url, mobile_phone=mobile_phone, message=message)
+
+    else:
+        if 'username' in session:
+            username = session['username']
+            user = get_user_info(username)
+            return render_template('editUserInfo.html', **userToDict(user))
+
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect('/')
+
 
 
 @app.route('/listUsers')
@@ -90,6 +158,5 @@ def listUsers():
 
     return render_template('list.html', members=users)
 
-
-
-app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True)
