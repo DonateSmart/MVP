@@ -2,9 +2,13 @@ import base64
 
 from flask import Flask, render_template, request, session, redirect
 from sqlalchemy import select, update
+
 from flask_sqlalchemy import SQLAlchemy
 from app import db, app
 from models import User
+
+app = Flask(__name__)
+app.secret_key = "daskdlaslddsa"
 
 @app.route('/')
 def index():
@@ -150,8 +154,8 @@ def listUsers():
     results = s.execute(select(User).order_by(User.username))
     users = []
     for item in results.scalars():
-        users.append(item.username + ' ' + item.firstname)
-        print(item.username + ' ' + item.firstname)
+        users.append(item.username + ' ' + item.password)
+        print(item.username + ' ' + item.password)
 
     return render_template('list.html', members=users)
 
