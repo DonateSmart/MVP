@@ -1,14 +1,9 @@
 import base64
 
-from flask import Flask, render_template, request, session, redirect
-from sqlalchemy import select, update
+from flask import render_template, request, session, redirect
 
-from flask_sqlalchemy import SQLAlchemy
 from app import db, app
 from models import User
-
-app = Flask(__name__)
-app.secret_key = "daskdlaslddsa"
 
 @app.route('/')
 def index():
@@ -57,13 +52,10 @@ def login():
 
         print(uname, pwd)
 
-        s = db.session()
-        result = s.execute(select(User).filter_by(username=uname))
+        result = User.query.filter_by(username=uname).first()
 
-        row = result.fetchone()
-
-        if row != None:
-            if encoded_password == row[0].password:
+        if result != None:
+            if encoded_password == result.password:
                 conn_success = True
 
         if conn_success:
@@ -77,16 +69,8 @@ def login():
 
 def get_user_info(username):
     s = db.session()
-    result = s.execute(select(User).filter_by(username=username))
-
-    row = result.fetchone()
-
-    # username = row[0].username
-    # firstname = row[0].firstname
-    # lastname = row[0].lastname
-    # url = row[0].url
-    # mobile_phone = row[0].mobile_phone
-    return row[0]
+    result = User.query.filter_by(username=username).first()
+    return result
 
 
 @app.route('/userInfo', methods=['GET', 'POST'])
@@ -125,11 +109,12 @@ def edit_user_info():
 
                 # update data in db
 
-                s = db.session()
-                stmt = update(User).where(User.username == username).values(firstname=firstname,lastname=lastname,
-                                                                                 url=url, mobile_phone=mobile_phone)
-                s.execute(stmt)
-
+                user = User.query.filter_by(username=username).first()
+                user.firstname = firstname
+                user.lastname = lastname
+                user.url = url
+                user.mobile_phone = mobile_phone
+                db.session().commit
 
                 return render_template('userInfo.html', username=username, firstname=firstname, lastname=lastname,
                                        url=url, mobile_phone=mobile_phone, message=message)
@@ -147,17 +132,16 @@ def logout():
     return redirect('/')
 
 
-
 @app.route('/listUsers')
 def listUsers():
-    s = db.session()
-    results = s.execute(select(User).order_by(User.username))
+    results = User.query.all()
     users = []
-    for item in results.scalars():
-        users.append(item.username + ' ' + item.password)
-        print(item.username + ' ' + item.password)
+    for item in results:
+        users.append(item.username + ' ' + item.firstname)
+        print(item.username + ' ' + item.firstname)
 
     return render_template('list.html', members=users)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
