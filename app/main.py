@@ -2,7 +2,7 @@ import base64
 
 from flask import render_template, request, session, redirect
 
-from app import db, app
+from app import db, app, bcrypt
 from models import User
 
 @app.route('/')
@@ -18,8 +18,8 @@ def index():
 def signup_user():
     if request.method == 'POST':
         username = request.form['username']
-        password = request.form['password'].encode("utf-8")
-        encoded_password = base64.b64encode(password)
+        password = request.form['password']
+        password_hash = bcrypt.generate_password_hash(password, 10)
 
         firstname = request.form['firstname']
         lastname = request.form['lastname']
@@ -28,7 +28,7 @@ def signup_user():
 
         print(username, password, firstname, lastname, url, mobile_phone)
 
-        user = User(username=username, password=encoded_password, firstname=firstname,
+        user = User(username=username, password=password_hash, firstname=firstname,
                     lastname=lastname, url=url, mobile_phone=mobile_phone)
 
         s = db.session()
@@ -47,15 +47,14 @@ def login():
         message = 'username or password is wrong'
         conn_success = False
         uname = request.form['username']
-        pwd = request.form['password'].encode("utf-8")
-        encoded_password = base64.b64encode(pwd)
+        password = request.form['password']
 
-        print(uname, pwd)
+        print(uname, password)
 
         result = User.query.filter_by(username=uname).first()
 
         if result != None:
-            if encoded_password == result.password:
+            if bcrypt.check_password_hash(result.password, password):
                 conn_success = True
 
         if conn_success:
