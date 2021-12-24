@@ -7,7 +7,8 @@ from models import User
 
 @app.route('/')
 def index():
-    return render_template('signup.html')
+    # return render_template('signup.html')
+    return render_template('index.html')
 
 
 # source venv/bin/activate
@@ -26,19 +27,24 @@ def signup_user():
         url = request.form['url']
         mobile_phone = request.form['mobile_phone']
 
-        print(username, password, firstname, lastname, url, mobile_phone)
+        age = request.form['age']
+        description = request.form['description']
+        bank_field = request.form['bank_field']
+
+        print(username, password, firstname, lastname, url, mobile_phone, age, description, bank_field)
 
         user = User(username=username, password=password_hash, firstname=firstname,
-                    lastname=lastname, url=url, mobile_phone=mobile_phone)
+                    lastname=lastname, url=url, mobile_phone=mobile_phone, age=age, description=description,
+                    bank_field=bank_field)
 
         s = db.session()
         s.add(user)
         s.commit()
         message = "New user is created!"
-        return render_template('signup.html', message=message)
+        return render_template('index.html', message=message)
 
     else:
-        return render_template('signup.html')
+        return render_template('index.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -77,7 +83,7 @@ def user_info():
     if 'username' in session:
         username = session['username']
         user = get_user_info(username)
-        return render_template('userInfo.html', **userToDict(user))
+        return render_template('paymentPage.html', **userToDict(user))
 
 def userToDict(user):
     d = {}
@@ -86,6 +92,7 @@ def userToDict(user):
     d['lastname'] = user.lastname
     d['url'] = user.url
     d['mobile_phone'] = user.mobile_phone
+    d['description'] = user.description
     return d
 
 @app.route('/editUserInfo', methods=['GET', 'POST'])

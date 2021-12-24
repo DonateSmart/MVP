@@ -1,0 +1,71 @@
+body {
+  background-color: #f7f0fe;
+}
+
+.bg-donate {
+  background-color: #491150;
+}
+
+.container {
+  max-width: 500px;
+}
+
+.btn {
+  color: #fff;
+}
+
+footer {
+  width: 100%;
+  padding: 30px;
+  color: #f7f0fe;
+}
+
+footer a {
+  color: #f7f0fe;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+  color: #f7f0fe;
+}
+
+.social-media-div {
+  max-width: 100px;
+}
+
+.social-media-div a {
+  width: 35px;
+  height: 35px;
+  text-decoration: none;
+}
+
+.social-media-div a:hover {
+  background-color: #f7f0fe;
+  border-radius: 50%;
+  color: #491150;
+  text-decoration: none;
+}
+
+.text-div {
+  font-size: 8px;
+}
+
+@media only screen and (min-height: 881px) {
+  footer {
+    position: fixed;
+    bottom: 0;
+  }
+}
+
+@media only screen and (min-width: 425px) {
+  .text-div {
+    font-size: 12px;
+  }
+}
+
+@media only screen and (min-width: 768px) {
+  .text-div {
+    font-size: 16px;
+  }
+}

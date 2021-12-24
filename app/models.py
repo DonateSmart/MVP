@@ -9,6 +9,9 @@ class User(db.Model):
     password = db.Column(db.String(250), nullable=False)
     mobile_phone = db.Column(db.Integer, nullable=False)
     url = db.Column(db.String(250), nullable=False)
+    bank_field = db.Column(db.String(250), nullable=False)
+    description = db.Column(db.String(250), nullable=False)
+    age = db.Column(db.Integer, nullable=False)
 
 
 def init_db():
