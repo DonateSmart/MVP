@@ -1,5 +1,5 @@
 import unittest
-import main
+
 
 class MyTestCase(unittest.TestCase):
     def test_signup(self):
@@ -8,8 +8,6 @@ class MyTestCase(unittest.TestCase):
         # request.form = form
         # request.method = 'POST'
         # main.signup_user(request)
-
-
 
 
 if __name__ == '__main__':

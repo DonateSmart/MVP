@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <title>User information test page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <div class="container" >
+      <a href="/listUsers">List Users</a><br>
+      <a href="/login">Login Page</a>
+        <a href="/logout">Logout</a>
+      <h1>User Information</h1>
+      <br>
+      <form action="/editUserInfo" method="post">
+          <label for="username">User Name:</label><br>
+          <input id="username" type="text" placeholder="User Name" name="username"  contenteditable="True" value="{{username}} " required><br>
+
+          <label for="firstname">First Name:</label><br>
+          <input id="firstname" type="text" placeholder="First Name" name="firstname"  contenteditable="True" value="{{firstname}} " required><br>
+
+          <label for="lastname">Last Name:</label><br>
+          <input id="lastname" type="text" placeholder="Last Name" name="lastname"  contenteditable="True" value="{{lastname}} "  required><br>
+
+          <label for="url">URL:</label><br>
+          <input id="url" type="text" placeholder="URL" name="url" contenteditable="True" value="{{url}} "  required><br>
+
+          <label id="mobile_phone" for="mobile_phone">Mobile Phone:</label><br>
+          <input type="text" placeholder="Mobile Phone" name="mobile_phone"  contenteditable="True" value="{{mobile_phone}} "required><br>
+        <button type="submit" >Save </button>
+         {{ message }}
+      </form>
+    </div>
+  </body>
+</html>
