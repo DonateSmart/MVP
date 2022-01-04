@@ -3,7 +3,7 @@ import base64
 from flask import render_template, request, session, redirect
 
 from app import db, app, bcrypt
-from models import User
+from models import User, BankAccount
 
 @app.route('/')
 def index():
@@ -29,18 +29,21 @@ def signup_user():
 
         age = request.form['age']
         description = request.form['description']
-        bank_field = request.form['bank_field']
+        bank_number = request.form['bank_number']
 
-        print(username, password, firstname, lastname, url, mobile_phone, age, description, bank_field)
+        print(username, password, firstname, lastname, url, mobile_phone, age, description, bank_number)
 
+        bank_account = BankAccount(bank_number=bank_number, amount=0)
         user = User(username=username, password=password_hash, firstname=firstname,
                     lastname=lastname, url=url, mobile_phone=mobile_phone, age=age, description=description,
-                    bank_field=bank_field)
+                    bank_info=bank_account)
 
         s = db.session()
         s.add(user)
+        s.add(bank_account)
         s.commit()
-        message = "New user is created!"
+
+        message = "New user is created! the username is " + username + " the person id is: " + str(user.id)
         return render_template('index.html', message=message)
 
     else:
@@ -66,7 +69,7 @@ def login():
         if conn_success:
             message = 'connection is successful'
             session['username'] = uname
-            return user_info()
+            return user_info(result.id, uname)
         else:
             return render_template('login.html', message=message)
     else:
@@ -78,12 +81,68 @@ def get_user_info(username):
     return result
 
 
-@app.route('/userInfo', methods=['GET', 'POST'])
-def user_info():
-    if 'username' in session:
-        username = session['username']
-        user = get_user_info(username)
-        return render_template('paymentPage.html', **userToDict(user))
+def get_user_info_byUserId(person_id):
+    s = db.session()
+    result = User.query.filter_by(id=person_id).first()
+    return result
+
+
+def get_bank_info_byUserId(person_id):
+    s = db.session()
+    result = BankAccount.query.filter_by(user_id=person_id).first()
+    return result
+
+
+@app.route('/userInfo/<person_id>/<username>', methods=['GET', 'POST'])
+def user_info(person_id, username):
+    # if 'username' in session:
+    #     username = session['username']
+    user = get_user_info_byUserId(person_id)
+    return render_template('paymentPage.html', **userToDict(user))
+
+
+@app.route('/userInfo_for_market/<person_id>', methods=['GET', 'POST'])
+def user_info_for_market(person_id):
+    print(person_id)
+    user = get_user_info_byUserId(person_id)
+    print(user.username)
+
+    # return render_template('paymentPage.html', **userToDict(user))
+
+
+@app.route('/requestPayment/<person_id>/<amount>', methods=['GET', 'POST'])
+def requestPayment(person_id, amount):
+    print(person_id + " " + amount)
+
+    user = get_user_info_byUserId(person_id)
+    bank_amount = get_bank_info_byUserId(person_id)
+
+    amount = int(amount)
+    if(bank_amount.amount >= amount): # there is enough money
+        message = "transaction is successful for amount of payment " + str(amount) + "\n"
+        bank_amount.amount = bank_amount.amount - amount
+        db.session().commit()
+    else:
+        message = "transaction failed for amount of donation " + str(amount)
+
+    return render_template("authorized.txt", username=user.username, amount=amount, message=message, remaining_money=bank_amount.amount)
+    # return render_template('paymentPage.html', **userToDict(user), message=message)
+
+
+@app.route('/donate/<person_id>', methods=['GET', 'POST'])
+def donate(person_id):
+    if request.method == 'POST':
+        user = get_user_info_byUserId(person_id)
+        amount = request.form['amountInput']
+        print(person_id + " " + amount)
+        message = "Transaction is successful for amount of donation " + amount
+        # make transaction in db
+        bank_info = get_bank_info_byUserId(person_id)
+        old_amount = bank_info.amount
+        bank_info.amount = old_amount + int(amount)
+        db.session().commit()
+        return render_template('paymentPage.html', **userToDict(user), message=message)
+
 
 def userToDict(user):
     d = {}
@@ -93,6 +152,9 @@ def userToDict(user):
     d['url'] = user.url
     d['mobile_phone'] = user.mobile_phone
     d['description'] = user.description
+    d['person_id'] = user.id
+    bank_account = user.bank_info
+    d['curr_amount'] = bank_account.amount
     return d
 
 @app.route('/editUserInfo', methods=['GET', 'POST'])
@@ -150,4 +212,5 @@ def listUsers():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # host u ekleki herkes ulassin
+    app.run(debug=True, host='0.0.0.0')
