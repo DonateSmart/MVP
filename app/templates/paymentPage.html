@@ -16,7 +16,7 @@
       integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p"
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="../static/styles/styles.css" />
+    <link rel="stylesheet" href="./styles.css" />
     <title>Helping is awesome</title>
   </head>
   <body>
@@ -29,7 +29,7 @@
           target="_blank"
         >
           <img
-            src="./assets/images/logo_png.png"
+            src="/static/assets/images/logo_png.png"
             alt=""
             width="70"
             height="56"
@@ -114,16 +114,13 @@
             </div>
             <div class="text-container">
               <figcaption>
-                <h1 class="text-center text-md-start">{{ firstname }} {{lastname}}</h1>
-                <p class="text-muted">
-                  {{description}}
-                </p>
+                <h1 class="text-center text-md-start">{{fullname}}</h1>
               </figcaption>
             </div>
           </figure>
         </section>
         <section>
-          <form class="mx-auto mt-5">
+          <form class="mx-auto mt-5" action="/donate/{{person_id}}" method="post">
             <div class="mb-3">
               <label for="amountInput" class="form-label">Amount</label>
               <input

@@ -1,0 +1,5 @@
+Message: {{message}}
+
+Authorized username: {{username}} for payment request: {{amount}}
+
+Remaining money of {{username}}:  {{remaining_money}}
