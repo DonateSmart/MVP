@@ -6,6 +6,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'casdadas'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['UPLOAD_FOLDER'] = '//profile_images'
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
