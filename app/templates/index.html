@@ -99,17 +99,13 @@
         <h1 class="mt-5 mb-4">Registration Form:</h1>
         <form action="/userSignup" method="post"> <!--   action added-->
           <div class="mb-3">
-            <label for="nameField" class="form-label">Full Name</label>
+            <label for="fullname" class="form-label">Full Name</label>
             <input
               type="text"
               class="form-control"
-              id="nameField"
-              placeholder="John Doe"
+              id="fullname"
+              name="fullname"
             />
-          </div>
-          <div class="mb-3">
-            <label for="ageField" class="form-label">Age</label> <!--   name is        added-->
-            <input type="number" min="1" name="age" class="form-control" id="ageField" />
           </div>
           <div class="mb-3">
             <label for="fileField" class="form-label">Personal Photo</label>
@@ -121,49 +117,25 @@
             />
           </div>
           <div class="mb-3">
-            <label for="description" class="form-label">Description</label> <!--   name is        added-->
-            <textarea class="form-control" name="description" id="description" rows="3"></textarea>
-          </div>
-
-<!--          new added-->
-
-          <div class="mb-3">
             <label for="username" class="form-label">User Name</label>
             <input type="text" min="1" name = "username" class="form-control" id="username" />
           </div>
           <div class="mb-3">
-            <label for="firstname" class="form-label">First Name</label>
-            <input type="text" min="1" name="firstname" class="form-control" id="firstname" />
-          </div>
-          <div class="mb-3">
-            <label for="lastname" class="form-label">Last Name</label>
-            <input type="text" min="1" name="lastname" class="form-control" id="lastname" />
-          </div>
-          <div class="mb-3">
             <label for="mobile_phone" class="form-label">Mobile Phone</label>
-            <input type="text" min="1" name="mobile_phone" class="form-control" id="mobile_phone" />
-          </div>
-          <div class="mb-3">
-            <label for="url" class="form-label">URL</label>
-            <input type="text" min="1" name="url" class="form-control" id="url" />
+            <input type="tel" min="1" name="mobile_phone" class="form-control" id="mobile_phone" />
           </div>
           <div class="mb-3">
             <label for="password" class="form-label">Password</label>
-            <input type="password" min="1" name="password" class="form-control" id="password" />
+            <input type="text" min="1" name="password" class="form-control" id="password" />
           </div>
           <div class="mb-3">
             <label for="bank_number" class="form-label">Bank Number</label>
-            <input type="bank_number" min="1" name="bank_number" class="form-control" id="bank_number" />
+            <input type="text" min="1" name="bank_number" class="form-control" id="bank_number" />
           </div>
           </div>
 
           <a href="/login">Login Page</a>
-
-        {{ message }}
-
-<!--      end of    new added-->
-
-
+          {{ message }}
           <button class="btn bg-donate w-100 mb-4" type="submit">Submit</button>
         </form>
       </section>

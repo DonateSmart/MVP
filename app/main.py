@@ -1,9 +1,14 @@
-import base64
-
 from flask import render_template, request, session, redirect
 
 from app import db, app, bcrypt
-from models import User, BankAccount
+from app.database_manager.models import User, BankAccount
+from app.managers.person_manager import FormParametersForPerson, Person, register_person
+
+# source venv/bin/activate
+# run Flask application from terminal
+# export FLASK_APP=main.py
+# flask run
+
 
 @app.route('/')
 def index():
@@ -11,41 +16,24 @@ def index():
     return render_template('index.html')
 
 
-# source venv/bin/activate
-# run Flask application from terminal
-# export FLASK_APP=main.py
-# flask run
 @app.route('/userSignup', methods=['GET', 'POST'])
 def signup_user():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        password_hash = bcrypt.generate_password_hash(password, 10)
+        if request.form.get(FormParametersForPerson.username.name) is not None \
+                and request.form.get(FormParametersForPerson.password.name) is not None\
+                and request.form.get(FormParametersForPerson.fullname.name) is not None \
+                and request.form.get(FormParametersForPerson.mobile_phone.name) is not None \
+                and request.form.get(FormParametersForPerson.bank_number.name) is not None:
 
-        firstname = request.form['firstname']
-        lastname = request.form['lastname']
-        url = request.form['url']
-        mobile_phone = request.form['mobile_phone']
+            username = request.form[FormParametersForPerson.username.name]
+            password = request.form[FormParametersForPerson.password.name]
+            fullname = request.form[FormParametersForPerson.fullname.name]
+            mobile_phone = request.form[FormParametersForPerson.mobile_phone.name]
+            bank_number = request.form[FormParametersForPerson.bank_number.name]
 
-        age = request.form['age']
-        description = request.form['description']
-        bank_number = request.form['bank_number']
-
-        print(username, password, firstname, lastname, url, mobile_phone, age, description, bank_number)
-
-        bank_account = BankAccount(bank_number=bank_number, amount=0)
-        user = User(username=username, password=password_hash, firstname=firstname,
-                    lastname=lastname, url=url, mobile_phone=mobile_phone, age=age, description=description,
-                    bank_info=bank_account)
-
-        s = db.session()
-        s.add(user)
-        s.add(bank_account)
-        s.commit()
-
-        message = "New user is created! the username is " + username + " the person id is: " + str(user.id)
+            person = Person(username, password, fullname, mobile_phone, bank_number)
+            message = register_person(person)
         return render_template('index.html', message=message)
-
     else:
         return render_template('index.html')
 
@@ -75,6 +63,7 @@ def login():
     else:
         return render_template('login.html')
 
+
 def get_user_info(username):
     s = db.session()
     result = User.query.filter_by(username=username).first()
@@ -93,12 +82,14 @@ def get_bank_info_byUserId(person_id):
     return result
 
 
-@app.route('/userInfo/<person_id>/<username>', methods=['GET', 'POST'])
-def user_info(person_id, username):
-    # if 'username' in session:
-    #     username = session['username']
+@app.route('/donate/<person_id>', methods=['GET', 'POST'])
+def user_info(person_id):
     user = get_user_info_byUserId(person_id)
-    return render_template('paymentPage.html', **userToDict(user))
+    if user is not None:
+        return render_template('paymentPage.html', **userToDict(user))
+    else:
+        return render_template('404.html')
+
 
 
 @app.route('/userInfo_for_market/<person_id>', methods=['GET', 'POST'])
@@ -129,7 +120,7 @@ def requestPayment(person_id, amount):
     # return render_template('paymentPage.html', **userToDict(user), message=message)
 
 
-@app.route('/donate/<person_id>', methods=['GET', 'POST'])
+@app.route('/donate2/<person_id>', methods=['GET', 'POST'])
 def donate(person_id):
     if request.method == 'POST':
         user = get_user_info_byUserId(person_id)
@@ -147,11 +138,8 @@ def donate(person_id):
 def userToDict(user):
     d = {}
     d['username'] = user.username
-    d['firstname'] = user.firstname
-    d['lastname'] = user.lastname
-    d['url'] = user.url
+    d['fullname'] = user.fullname
     d['mobile_phone'] = user.mobile_phone
-    d['description'] = user.description
     d['person_id'] = user.id
     bank_account = user.bank_info
     d['curr_amount'] = bank_account.amount

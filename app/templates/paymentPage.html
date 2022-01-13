@@ -29,7 +29,7 @@
           target="_blank"
         >
           <img
-            src="./assets/images/logo_png.png"
+            src="/static/assets/images/logo_png.png"
             alt=""
             width="70"
             height="56"
@@ -114,11 +114,7 @@
             </div>
             <div class="text-container">
               <figcaption>
-                <h1 class="text-center text-md-start">Name: {{ firstname }} {{lastname}}</h1>
-                <h1 class="text-center text-md-start">amount of money in the account:{{curr_amount}}</h1>
-                <p class="text-muted">
-                  {{description}}
-                </p>
+                <h1 class="text-center text-md-start">{{fullname}}</h1>
               </figcaption>
             </div>
           </figure>
@@ -131,13 +127,11 @@
                 type="number"
                 class="form-control"
                 id="amountInput"
-                name="amountInput"
                 placeholder="10.00"
                 min="1"
               />
             </div>
-            {{message}}
-            <button class="btn btn-primary w-100 mb-3" type="submit">
+            <button class="btn btn-primary w-100 mb-3" type="button">
               Donate with your Credit Card/Debit Card
             </button>
             <button class="btn btn-outline-secondary w-100 mb-3" type="button">
