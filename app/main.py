@@ -1,8 +1,10 @@
-from flask import render_template, request, session, redirect
+from flask import render_template, request, session, redirect, jsonify
 
 from app import db, app, bcrypt
 from app.database_manager.models import User, BankAccount
 from app.managers.person_manager import FormParametersForPerson, Person, register_person
+from managers.payment import payment_paypal
+
 
 # source venv/bin/activate
 # run Flask application from terminal
@@ -12,7 +14,6 @@ from app.managers.person_manager import FormParametersForPerson, Person, registe
 
 @app.route('/')
 def index():
-    # return render_template('signup.html')
     return render_template('index.html')
 
 
@@ -36,6 +37,17 @@ def signup_user():
         return render_template('index.html', message=message)
     else:
         return render_template('index.html')
+
+
+@app.route('/payment', methods=['POST'])
+def payment():
+    amount = "10.00"
+    return payment_paypal.payment_paypal(amount)
+
+
+@app.route('/execute', methods=['POST'])
+def execute():
+    return payment_paypal.execute_paypal(request)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -199,6 +211,10 @@ def listUsers():
     return render_template('list.html', members=users)
 
 
-if __name__ == "__main__":
-    # host u ekleki herkes ulassin
-    app.run(debug=True, host='0.0.0.0')
+if __name__ == '__main__':
+    app.run(debug=True)
+
+# if __name__ == "__main__":
+#     # host u ekleki herkes ulassin
+#     app.run(debug=True, host='0.0.0.0')
+#     # app.run(port=4455,debug=True)
