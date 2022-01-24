@@ -39,9 +39,8 @@ def signup_user():
         return render_template('index.html')
 
 
-@app.route('/payment', methods=['POST'])
-def payment():
-    amount = "10.00"
+@app.route('/payment/<amount>', methods=['POST'])
+def payment(amount):
     return payment_paypal.payment_paypal(amount)
 
 
