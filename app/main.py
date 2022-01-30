@@ -1,10 +1,14 @@
 import base64
+import os
 
 from urllib.parse import quote_plus
-from flask import render_template, request, session, redirect, url_for
+from flask import render_template, request, session, redirect, url_for, flash
+from werkzeug.utils import secure_filename
 
-from app import db, app, bcrypt
-from models import User
+from app import db, app, bcrypt, ALLOWED_EXTENSIONS
+from app.upload_s3 import upload_file_s3, upload_file_object_s3, s3_upload_small_files
+from models import HLPerson
+import hashlib
 
 
 @app.route('/')
@@ -16,6 +20,11 @@ def index():
 # run Flask application from terminal
 # export FLASK_APP=main.py
 # flask run
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 @app.route('/userSignup', methods=['GET', 'POST'])
 def signup_user():
     if request.method == 'POST':
@@ -26,21 +35,33 @@ def signup_user():
         description = request.form['description']
         bank_field = request.form['bankField']
         image = request.files['fileField']
-        image.save(image.filename)
-        url = "https://prototype.donatesmart.co.uk/profile/" + str(username)
-        url = quote_plus(url)
-        print(url)
-
-        print(username, password)
-
-        user = User(username=username, password=password_hash, url=url, age=age, description=description,
-                    bank_field=bank_field)
-
+        content_type = image.content_type
+        donate_smart_id = hashlib.md5(username.encode('utf-8')).hexdigest()
+        if image and allowed_file(image.filename):
+            file_extention = image.filename.split('.')[1]
+            filename = secure_filename(donate_smart_id + '.' + file_extention)
+            image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        # if image:
+        #     filename_final = secure_filename(image.filename)
+        #
+        #     image_url = s3_upload_small_files(inp_file_name=image, s3_bucket_name="test-donatesmart",
+        #                                       inp_file_key=filename_final,
+        #                                       content_type=content_type)
+        #     print(image_url)
+        # if image:
+        #     final_upload = upload_file_object_s3(image,"test-donatesmart")
+        #     print(final_upload)
+        donate_smart_id = hashlib.md5(username.encode('utf-8')).hexdigest()
+        url = "https://prototype.donatesmart.co.uk/profile/" + quote_plus(str(donate_smart_id))
+        user = HLPerson(username=username, donate_smart_id=str(donate_smart_id), password=password_hash, url=url,
+                        age=age, description=description,
+                        bank_field=bank_field, image_url='/static/assets/profile_pictures/{}'.format(filename))
         s = db.session()
         s.add(user)
         s.commit()
         message = "New user is created!"
-        return render_template('index.html', message=message)
+        flash(message)
+        return redirect(url_for('user_info', person_id=donate_smart_id))
 
     else:
         return render_template('index.html')
@@ -56,7 +77,7 @@ def login():
 
         print(uname, password)
 
-        result = User.query.filter_by(username=uname).first()
+        result = HLPerson.query.filter_by(username=uname).first()
 
         if result != None:
             if bcrypt.check_password_hash(result.password, password):
@@ -72,29 +93,16 @@ def login():
         return render_template('login.html')
 
 
-def get_user_info(username):
-    s = db.session()
-    result = User.query.filter_by(username=username).first()
-    return result
 
 
-@app.route('/userInfo', methods=['GET', 'POST'])
-def user_info():
-    if 'username' in session:
-        username = session['username']
-        user = get_user_info(username)
-        return render_template('paymentPage.html', **userToDict(user))
+@app.route('/donate/<person_id>', methods=['GET', 'POST'])
+def user_info(person_id):
+    user = HLPerson.query.filter_by(donate_smart_id = person_id).first()
+    if user is not None:
+        return render_template('paymentPage.html', user = user)
+    return render_template('paymentPage.html')
 
 
-def userToDict(user):
-    d = {}
-    d['username'] = user.username
-    d['firstname'] = user.firstname
-    d['lastname'] = user.lastname
-    d['url'] = user.url
-    d['mobile_phone'] = user.mobile_phone
-    d['description'] = user.description
-    return d
 
 
 @app.route('/editUserInfo', methods=['GET', 'POST'])
@@ -107,7 +115,7 @@ def edit_user_info():
             if request.form.get('username') != None and request.form.get('firstname') != None and \
                     request.form.get('lastname') != None and request.form.get('url') != None \
                     and request.form.get('mobile_phone') != None:
-                message = 'User info is saved!'
+                message = 'HLPerson info is saved!'
 
                 firstname = request.form['firstname']
                 lastname = request.form['lastname']
@@ -116,7 +124,7 @@ def edit_user_info():
 
                 # update data in db
 
-                user = User.query.filter_by(username=username).first()
+                user = HLPerson.query.filter_by(username=username).first()
                 user.firstname = firstname
                 user.lastname = lastname
                 user.url = url
@@ -130,7 +138,7 @@ def edit_user_info():
         if 'username' in session:
             username = session['username']
             user = get_user_info(username)
-            return render_template('editUserInfo.html', **userToDict(user))
+            return render_template('editUserInfo.html', user=user)
 
 
 @app.route('/logout')
@@ -141,11 +149,10 @@ def logout():
 
 @app.route('/listUsers')
 def listUsers():
-    results = User.query.all()
+    results = HLPerson.query.all()
     users = []
     for item in results:
-        users.append(item.username + ' ' + item.firstname)
-        print(item.username + ' ' + item.firstname)
+        users.append(item.username)
 
     return render_template('list.html', members=users)
 
