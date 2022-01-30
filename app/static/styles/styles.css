@@ -10,8 +10,25 @@ body {
   max-width: 500px;
 }
 
-.btn {
-  color: #fff;
+.image-container {
+  max-width: 100px;
+  max-height: 100px;
+}
+
+.personal-photo {
+  width: 100%;
+}
+
+.google-pay-logo {
+  width: 50px;
+}
+
+.apple-pay-logo {
+  width: 50px;
+}
+
+.paypal-logo {
+  width: 50px;
 }
 
 footer {
@@ -51,7 +68,7 @@ footer a:hover {
   font-size: 8px;
 }
 
-@media only screen and (min-height: 881px) {
+@media only screen and (min-height: 785px) {
   footer {
     position: fixed;
     bottom: 0;
@@ -67,5 +84,10 @@ footer a:hover {
 @media only screen and (min-width: 768px) {
   .text-div {
     font-size: 16px;
+  }
+
+  .image-container {
+    max-width: 145px;
+    max-height: 145px;
   }
 }
