@@ -122,43 +122,53 @@
         <section>
           <form class="mx-auto mt-5" action="/donate/{{person_id}}" method="post">
             <div class="mb-3">
-              <label for="amountInput" class="form-label">Amount</label>
+              <label for="amount" class="form-label">Amount</label>
               <input
-                type="number"
+                type="text"
                 class="form-control"
-                id="amountInput"
+                id="amount"
                 placeholder="10.00"
                 min="1"
+                name="amount"
               />
             </div>
-            <button class="btn btn-primary w-100 mb-3" type="button">
-              Donate with your Credit Card/Debit Card
-            </button>
-            <button class="btn btn-outline-secondary w-100 mb-3" type="button">
-              Donate with
-              <img
-                src="/static/assets/images/g-pay-logo.png"
-                alt="google pay logo"
-                class="google-pay-logo"
-              />
-            </button>
-            <button class="btn btn-dark w-100 mb-3" type="button">
-              Donate with
-              <img
-                src="/static/assets/images/apple-pay-logo.png"
-                alt="apple pay logo"
-                class="apple-pay-logo"
-              />
-            </button>
-            <button class="btn btn-warning w-100 mb-3" type="button">
-              Donate with
-              <img
-                src="/static/assets/images/paypal-logo.png"
-                alt="paypal logo"
-                class="paypal-logo"
-              />
-            </button>
-          </form>
+            <div id="paypal-button"></div>
+            <script src="https://www.paypalobjects.com/api/checkout.js"></script>
+
+            <script>
+                var CREATE_PAYMENT_URL  = 'http://127.0.0.1:5000/payment/';
+                var EXECUTE_PAYMENT_URL = 'http://127.0.0.1:5000/execute';
+
+                paypal.Button.render({
+
+                    env: 'sandbox', // Or 'sandbox'
+
+                    commit: true, // Show a 'Pay Now' button
+
+                    payment: function() {
+                        var amount = document.getElementById("amount").value;
+                        var new_payment_url = CREATE_PAYMENT_URL+amount;
+
+                        return paypal.request.post(new_payment_url).then(function(data) {
+                            return data.paymentID;
+                        });
+                    },
+
+                    onAuthorize: function(data) {
+                        return paypal.request.post(EXECUTE_PAYMENT_URL, {
+                            paymentID: data.paymentID,
+                            payerID:   data.payerID
+                        }).then(function(res) {
+
+                            console.log(res.success)
+                            // The payment is complete!
+                            // You can now show a confirmation message to the customer
+                        });
+                    }
+
+                }, '#paypal-button');
+            </script>
+        </form>
         </section>
       </div>
     </main>
