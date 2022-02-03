@@ -2,3 +2,5 @@ venv/
 *.db
 .idea/
 __pycache__/
+static/assets/profile_pictures/
+paypal_client_info.txt

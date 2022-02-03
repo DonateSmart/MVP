@@ -1,94 +1,90 @@
-import enum
 import logging
 
-from app import db, bcrypt
-from app.database_manager.models import User, BankAccount
+from app import db, bcrypt, ALLOWED_PHOTO_EXTENSIONS, app
+from app.managers.database_manager import User, BankAccount
+import hashlib
+import os
+from werkzeug.utils import secure_filename
+from urllib.parse import quote_plus
 
 
-class SystemMessages(enum.Enum):
-    change_username = 'This account name is already in use. Please use different username.'
-    password_error = 'Password should be at least 4 characters'
-    success_code = 200
-    success_message = 'This account is successfully registered into the system.'
-    mobile_phone_error = 'Please control mobile phone'
-    name_error = 'Name should be at least 2 characters'
-    bank_number_error = 'Please control bank number'
-    empty_field_error = 'Please fill all the empty fields'
-
-
-class FormParametersForPerson(enum.Enum):
-    username = 'username'
-    password = 'password'
-    fullname = 'fullname'
-    mobile_phone = 'mobile_phone'
-    bank_number = 'bank_number'
+class RegistrationResult:
+    def __init__(self, message, is_data_created, person_id):
+        self.message = message
+        self.is_data_created = is_data_created
+        self.person_id = person_id
 
 
 class Person:
-    def __init__(self, username, password, fullname, mobile_phone, bank_number):
+    def __init__(self, username, password, fullname, mobile_phone, image_file, image_url, url,
+                 donate_smart_id, image_filename):
         self.username = username
         self.password = password
         self.fullname = fullname
         self.mobile_phone = mobile_phone
-        self.bank_number = bank_number
+        self.image_file = image_file
+        self.image_url = image_url
+        self.url = url
+        self.donate_smart_id = donate_smart_id
+        self.image_filename = image_filename
 
 
-def register_person(person):
-    result_message = control_person_field(person)
-    logging.info('Try to register the person ', person)
-
-    if result_message == 200:
-        encrypted_password = bcrypt.generate_password_hash(person.password, 10)
-        bank_account = BankAccount(bank_number=person.bank_number, amount=0)
-        user = User(username=person.username, password=encrypted_password, fullname=person.fullname,
-                    mobile_phone=person.mobile_phone, bank_info=bank_account)
-
-        try:
-            s = db.session()
-            s.add(user)
-            s.add(bank_account)
-            s.commit()
-            result_message = "New user is created! the username is " + user.username + " the person id is: " + str(user.id)
-        except RuntimeError:
-            logging.error('There is an error while registering ', person)
-            result_message = "The data couldn't be saved into the system."
-
-    return result_message
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_PHOTO_EXTENSIONS
 
 
-def control_person_field(person):
-    if len(person.username) == 0 and len(person.fullname) == 00 and len(person.password) == 0 and \
-            len(person.mobile_phone) == 0 and len(person.bank_number) == 0:
-        return SystemMessages.empty_field_error.value
-
-    if len(person.fullname) < 3:
-        return SystemMessages.name_error.value
-
-    if get_user_info(person.username) is not None:
-        return SystemMessages.change_username.value
-
-    if len(person.password) < 4:
-        return SystemMessages.password_error.value
-
-    if not is_phone_number_valid(person.mobile_phone):
-        return SystemMessages.mobile_phone_error.value
-
-    if not person.bank_number.isdigit():
-        return SystemMessages.bank_number_error.value
-
-    return SystemMessages.success_code.value
+def get_photo_filename(person):
+    image_file = person.image_file
+    if image_file and allowed_file(image_file.filename):
+        file_extension = image_file.filename.split('.')[1]
+        filename = secure_filename(person.donate_smart_id + '.' + file_extension)
+    return filename
 
 
-def is_phone_number_valid(s):
-    # 1) Begins with 0 or 91
-    # 3) Then contains 9 digits
-    # pattern = re.compile("(0|91)?[0-9]{9}")
-    # return pattern.match(s)
-    return s.isdigit()
+def arrange_person_data(person):
+    person.password = bcrypt.generate_password_hash(person.password, 10)
+
+    person.donate_smart_id = hashlib.md5(person.username.encode('utf-8')).hexdigest()
+    person.url = "https://prototype.donatesmart.co.uk/profile/" + quote_plus(str(person.donate_smart_id))
+
+    person.image_filename = get_photo_filename(person)
+    person.image_url = '/static/assets/profile_pictures/{}'.format(person.image_filename)
+    return person
 
 
-def get_user_info(username):
-    s = db.session()
-    result = User.query.filter_by(username=username).first()
-    return result
+def register_person(form):
+    try:
+        logging.info('Try to register the person ', form.username.data)
+        person = Person(form.username.data, form.password.data, form.fullname.data, form.mobile_phone.data,
+                        form.image_file.data, '', '', '', '')
+        arranged_person_data = arrange_person_data(person)
+
+        bank_account = BankAccount(bank_number="131231", amount=0)
+        user = User(username=arranged_person_data.username, password=arranged_person_data.password,
+                    fullname=arranged_person_data.fullname, mobile_phone=arranged_person_data.mobile_phone,
+                    bank_info=bank_account, donate_smart_id=str(arranged_person_data.donate_smart_id),
+                    url=arranged_person_data.url, image_url=arranged_person_data.image_url)
+
+        s = db.session()
+        s.add(user)
+        s.add(bank_account)
+        s.commit()
+
+        arranged_person_data.image_file.save(os.path.join(app.config['UPLOAD_FOLDER'],
+                                                          arranged_person_data.image_filename))
+
+        result_message = "New user is created! the username is " + person.username + " the person id is: " + str(user.id)
+        is_data_created = True
+        user = User.query.filter_by(username=arranged_person_data.username).first()
+        return RegistrationResult(result_message, is_data_created, user.id)
+    except RuntimeError:
+        logging.error('There is an error while registering ', person)
+        result_message = "The data couldn't be saved into the system."
+        is_data_created = False
+        return RegistrationResult(result_message, is_data_created, '')
+
+
+
+
 

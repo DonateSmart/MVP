@@ -7,6 +7,9 @@ class User(db.Model):
     fullname = db.Column(db.String(250), nullable=False)
     password = db.Column(db.String(250), nullable=False)
     mobile_phone = db.Column(db.Integer, nullable=False)
+    donate_smart_id = db.Column(db.String(250), nullable=False)
+    url = db.Column(db.String(250), nullable=False)
+    image_url = db.Column(db.String(250), nullable=False)
     bank_info = db.relationship('BankAccount', backref='user', lazy=True,  uselist=False)
 
 
