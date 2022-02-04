@@ -59,21 +59,6 @@
       </div>
 
       <div class="mb-3">
-          {{ form.mobile_phone.label(class="form-control-label") }}
-
-          {% if form.mobile_phone.errors %}
-              {{ form.mobile_phone(class="form-control form-control-lg is-invalid") }}
-              <div class="invalid-feedback">
-                  {% for error in form.mobile_phone.errors %}
-                      <span>{{ error }}</span>
-                  {% endfor %}
-              </div>
-          {% else %}
-              {{ form.mobile_phone(class="form-control") }}
-          {% endif %}
-      </div>
-
-      <div class="mb-3">
           {{ form.password.label(class="form-control-label") }}
 
           {% if form.password.errors %}

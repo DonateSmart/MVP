@@ -1,7 +1,7 @@
 import logging
 
 from app import db, bcrypt, ALLOWED_PHOTO_EXTENSIONS, app
-from app.managers.database_manager import User, BankAccount
+from app.managers.database_manager import User
 import hashlib
 import os
 from werkzeug.utils import secure_filename
@@ -16,12 +16,11 @@ class RegistrationResult:
 
 
 class Person:
-    def __init__(self, username, password, fullname, mobile_phone, image_file, image_url, url,
+    def __init__(self, username, password, fullname, image_file, image_url, url,
                  donate_smart_id, image_filename):
         self.username = username
         self.password = password
         self.fullname = fullname
-        self.mobile_phone = mobile_phone
         self.image_file = image_file
         self.image_url = image_url
         self.url = url
@@ -54,21 +53,18 @@ def arrange_person_data(person):
 
 
 def register_person(form):
+    logging.info('Try to register the person ', form.username.data)
+    person = Person(form.username.data, form.password.data, form.fullname.data,
+                    form.image_file.data, '', '', '', '')
     try:
-        logging.info('Try to register the person ', form.username.data)
-        person = Person(form.username.data, form.password.data, form.fullname.data, form.mobile_phone.data,
-                        form.image_file.data, '', '', '', '')
         arranged_person_data = arrange_person_data(person)
 
-        bank_account = BankAccount(bank_number="131231", amount=0)
         user = User(username=arranged_person_data.username, password=arranged_person_data.password,
-                    fullname=arranged_person_data.fullname, mobile_phone=arranged_person_data.mobile_phone,
-                    bank_info=bank_account, donate_smart_id=str(arranged_person_data.donate_smart_id),
+                    fullname=arranged_person_data.fullname, donate_smart_id=str(arranged_person_data.donate_smart_id),
                     url=arranged_person_data.url, image_url=arranged_person_data.image_url)
 
         s = db.session()
         s.add(user)
-        s.add(bank_account)
         s.commit()
 
         arranged_person_data.image_file.save(os.path.join(app.config['UPLOAD_FOLDER'],
@@ -79,7 +75,7 @@ def register_person(form):
         user = User.query.filter_by(username=arranged_person_data.username).first()
         return RegistrationResult(result_message, is_data_created, user.id)
     except RuntimeError:
-        logging.error('There is an error while registering ', person)
+        logging.error('There is an error while registering ', person.username)
         result_message = "The data couldn't be saved into the system."
         is_data_created = False
         return RegistrationResult(result_message, is_data_created, '')

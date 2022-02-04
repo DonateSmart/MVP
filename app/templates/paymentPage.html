@@ -22,17 +22,17 @@
             </div>
             <div class="text-container">
               <figcaption>
-                <h1 class="text-center text-md-start">Hi, I am {{ user.username }} </h1>
+                <h1 class="text-center text-md-start">Hi, I am {{ user.fullname }} </h1>
               </figcaption>
             </div>
           </figure>
         </section>
         <section>
           <form class="mx-auto mt-5" action="/donate/{{person_id}}" method="post">
-            <div class="mb-3">
+          <div class="mb-3">
               <label for="amount" class="form-label">Amount</label>
               <input
-                type="text"
+                type="number"
                 class="form-control"
                 id="amount"
                 placeholder="10.00"
@@ -41,10 +41,11 @@
                 required
               />
             </div>
+
             <input type="hidden" id="user_id" name="user_id" value="{{ user.id }}">
             <div id="paypal-button"></div>
-            <script src="https://www.paypalobjects.com/api/checkout.js"></script>
 
+            <script src="https://www.paypalobjects.com/api/checkout.js"></script>
             <script>
                 var CREATE_PAYMENT_URL  = 'http://10.0.0.191:5000/payment/'; // MUST BE CURRENT LOCAL URL
                 var EXECUTE_PAYMENT_URL = 'http://10.0.0.191:5000/execute/';
@@ -76,8 +77,10 @@
                         }).then(function(res) {
 
                             console.log(res.success)
+                            console.log('Hello')
                             // The payment is complete!
                             // You can now show a confirmation message to the customer
+                            location.reload();
                         });
                     }
 

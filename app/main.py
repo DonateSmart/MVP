@@ -3,7 +3,7 @@ from flask import render_template, request, flash, redirect, url_for
 from app import app
 from app.managers.database_manager import User
 from app.managers.person_manager import register_person
-from managers.payment.payment_paypal import payment_paypal, execute_paypal
+from managers.payment.payment_paypal import payment_paypal, execute_paypal, ProcessResult
 from app.managers.form_managers import RegistrationForm
 
 
@@ -26,13 +26,23 @@ def signup_user():
 
 @app.route('/payment/<amount>/<user_id>', methods=['POST'])
 def payment(amount, user_id):
-    return payment_paypal(amount, user_id)
+    process_result = payment_paypal(amount, user_id)
+    if process_result.is_successful:
+        return process_result.json_result
+    else:
+        flash(f'{process_result.message}!', 'fail')
+        return redirect(url_for('donate', person_id=user_id))
 
 
 @app.route('/execute/<amount>/<user_id>', methods=['POST'])
 def execute(amount, user_id):
-    a = 5
-    return execute_paypal(request, amount, user_id)
+    process_result = execute_paypal(request, amount, user_id)
+    if process_result.is_successful:
+        flash(f'{process_result.message}!', 'success')
+    else:
+        flash(f'{process_result.message}!', 'fail')
+
+    return process_result.json_result
 
 
 @app.route('/donate/<person_id>', methods=['GET', 'POST'])
