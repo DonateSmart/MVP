@@ -17,7 +17,7 @@ class RegistrationResult:
 
 class Person:
     def __init__(self, username, password, fullname, image_file, image_url, url,
-                 donate_smart_id, image_filename):
+                 donate_smart_id, image_filename, about_person):
         self.username = username
         self.password = password
         self.fullname = fullname
@@ -26,16 +26,17 @@ class Person:
         self.url = url
         self.donate_smart_id = donate_smart_id
         self.image_filename = image_filename
+        self.about_person = about_person
 
 
-def allowed_file(filename):
+def allowed_image_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_PHOTO_EXTENSIONS
 
 
 def get_photo_filename(person):
     image_file = person.image_file
-    if image_file and allowed_file(image_file.filename):
+    if image_file and allowed_image_file(image_file.filename):
         file_extension = image_file.filename.split('.')[1]
         filename = secure_filename(person.donate_smart_id + '.' + file_extension)
     return filename
@@ -55,13 +56,14 @@ def arrange_person_data(person):
 def register_person(form):
     logging.info('Try to register the person ', form.username.data)
     person = Person(form.username.data, form.password.data, form.fullname.data,
-                    form.image_file.data, '', '', '', '')
+                    form.image_file.data, '', '', '', '', form.about_person.data)
     try:
         arranged_person_data = arrange_person_data(person)
 
         user = User(username=arranged_person_data.username, password=arranged_person_data.password,
                     fullname=arranged_person_data.fullname, donate_smart_id=str(arranged_person_data.donate_smart_id),
-                    url=arranged_person_data.url, image_url=arranged_person_data.image_url)
+                    url=arranged_person_data.url, image_url=arranged_person_data.image_url,
+                    about_person=arranged_person_data.about_person)
 
         s = db.session()
         s.add(user)

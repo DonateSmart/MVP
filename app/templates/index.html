@@ -32,17 +32,6 @@
         {% endif %}
       </div>
 
-
-<!--      <div class="mb-3">-->
-<!--        <label for="fileField" class="form-label">Personal Photo</label>-->
-<!--        <input-->
-<!--          class="form-control"-->
-<!--          type="file"-->
-<!--          id="fileField"-->
-<!--          accept="image/*"-->
-<!--        />-->
-<!--      </div>-->
-
       <div class="mb-3">
           {{ form.username.label(class="form-control-label") }}
 
@@ -55,6 +44,21 @@
               </div>
           {% else %}
               {{ form.username(class="form-control") }}
+          {% endif %}
+      </div>
+
+        <div class="mb-3">
+          {{ form.about_person.label(class="form-control-label") }}
+
+          {% if form.about_person.errors %}
+              {{ form.about_person(class="form-control form-control-lg is-invalid") }}
+              <div class="invalid-feedback">
+                  {% for error in form.about_person.errors %}
+                      <span>{{ error }}</span>
+                  {% endfor %}
+              </div>
+          {% else %}
+              {{ form.about_person(class="form-control") }}
           {% endif %}
       </div>
 

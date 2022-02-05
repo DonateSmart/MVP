@@ -9,6 +9,7 @@ class User(db.Model):
     donate_smart_id = db.Column(db.String(250), nullable=False)
     url = db.Column(db.String(250), nullable=False)
     image_url = db.Column(db.String(250), nullable=False)
+    about_person = db.Column(db.String(250), nullable=True)
     donation_transaction_info = db.relationship('DonationTransaction', backref='user', lazy=True)
 
 

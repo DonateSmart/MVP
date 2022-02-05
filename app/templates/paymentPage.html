@@ -17,20 +17,18 @@
                 src="{{ user.image_url }}"
                 alt="personal photo"
                 class="personal-photo"
-                width="70%" height="70%"
-              >
-            </div>
-            <div class="text-container">
-              <figcaption>
-                <h1 class="text-center text-md-start">Hi, I am {{ user.fullname }} </h1>
+                width="70%" height="70%">
+                <figcaption>
+                  <h1 class="text-center text-md-start">Hi, I am {{ user.fullname }}. {{ user.about_person }} </h1>
               </figcaption>
             </div>
+
           </figure>
         </section>
         <section>
           <form class="mx-auto mt-5" action="/donate/{{person_id}}" method="post">
           <div class="mb-3">
-              <label for="amount" class="form-label">Amount</label>
+              <label for="amount" class="form-label">How much would you like to donate?</label>
               <input
                 type="number"
                 class="form-control"

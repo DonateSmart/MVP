@@ -10,8 +10,11 @@ class RegistrationForm(FlaskForm):
     fullname = StringField('Fullname', validators=[DataRequired(), Length(min=2, max=20)])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=4, max=20)])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
-    image_file = FileField('Upload Personal Photo', validators=[FileRequired(), FileAllowed(['png', 'jpg', 'jpeg', 'gif'])])
+    image_file = FileField('Would you like to upload your photo?', validators=[FileRequired(),
+                           FileAllowed(['png', 'jpg', 'jpeg', 'gif'])])
+    about_person = StringField('Would you like to talk about yourself?')
     submit = SubmitField('Sign Up')
+
 
     def validate_password(self, password):
         if not password_check(password.data):

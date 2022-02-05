@@ -24,6 +24,15 @@ def signup_user():
     return render_template('index.html', title='Register', form=form)
 
 
+@app.route('/donate/<person_id>', methods=['GET', 'POST'])
+def donate(person_id):
+    user = User.query.filter_by(id=person_id).first()
+    if user is not None:
+        return render_template('paymentPage.html', user=user)
+    else:
+        return render_template('404.html')
+
+
 @app.route('/payment/<amount>/<user_id>', methods=['POST'])
 def payment(amount, user_id):
     process_result = payment_paypal(amount, user_id)
@@ -43,15 +52,6 @@ def execute(amount, user_id):
         flash(f'{process_result.message}!', 'fail')
 
     return process_result.json_result
-
-
-@app.route('/donate/<person_id>', methods=['GET', 'POST'])
-def donate(person_id):
-    user = User.query.filter_by(id=person_id).first()
-    if user is not None:
-        return render_template('paymentPage.html', user=user)
-    else:
-        return render_template('404.html')
 
 
 if __name__ == "__main__":
