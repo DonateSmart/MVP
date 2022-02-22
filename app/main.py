@@ -3,7 +3,7 @@ from flask import render_template, request, flash, redirect, url_for
 from app import app
 from app.managers.database_manager import User
 from app.managers.person_manager import register_person
-from managers.payment.payment_paypal import payment_paypal, execute_paypal, ProcessResult
+from app.managers.payment.payment_paypal import payment_paypal, execute_paypal, ProcessResult
 from app.managers.form_managers import RegistrationForm
 
 
