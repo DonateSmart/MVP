@@ -1,5 +1,3 @@
-import logging
-
 from app import db, bcrypt, ALLOWED_PHOTO_EXTENSIONS, app
 from app.managers.database_manager import User
 import hashlib
@@ -54,7 +52,6 @@ def arrange_person_data(person):
 
 
 def register_person(form):
-    logging.info('Try to register the person ', form.username.data)
     person = Person(form.username.data, form.password.data, form.fullname.data,
                     form.image_file.data, '', '', '', '', form.about_person.data)
     try:
@@ -77,7 +74,6 @@ def register_person(form):
         user = User.query.filter_by(username=arranged_person_data.username).first()
         return RegistrationResult(result_message, is_data_created, user.id)
     except RuntimeError:
-        logging.error('There is an error while registering ', person.username)
         result_message = "The data couldn't be saved into the system."
         is_data_created = False
         return RegistrationResult(result_message, is_data_created, '')

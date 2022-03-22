@@ -1,18 +1,30 @@
 from flask import render_template, request, flash, redirect, url_for
 
 from app import app
-from app.managers.database_manager import User
+from app.managers.database_manager import User, Admin
 from app.managers.person_manager import register_person
 from app.managers.payment.payment_paypal import payment_paypal, execute_paypal, ProcessResult
-from app.managers.form_managers import RegistrationForm
+from app.managers.form_managers import RegistrationForm, AdministrationRegistrationForm, AdministrationLoginForm
+from app.managers.administration_manager import register_admin
+import logging
+import socket
+import os
+
+os.environ["ENVIRONMENT"] = "DEV"
+
+logging.basicConfig(filename='donate_smart.log', level=logging.DEBUG,
+                    format='%(asctime)s:%(levelname)s:%(message)s')
 
 
 @app.route('/')
 @app.route('/userSignup', methods=['GET', 'POST'])
 def signup_user():
     form = RegistrationForm()
+    logging.debug('Form is validated for the username: {}'.format(form.username.data))
+
     if request.method == 'POST' and form.validate_on_submit():
         registration_result = register_person(form)
+        logging.debug('Registration result will show on : {}'.format(form.username.data))
 
         if registration_result.is_data_created:
             flash(f'{registration_result.message}!', 'success')
@@ -24,11 +36,64 @@ def signup_user():
     return render_template('index.html', title='Register', form=form)
 
 
+@app.route('/admin_signup', methods=['GET', 'POST'])
+def administration_signup():
+    form = AdministrationRegistrationForm()
+
+    if request.method == 'POST' and form.validate_on_submit():
+        registration_result = register_admin(form)
+        logging.debug('Registration result will show on : {}'.format(form.email_address.data))
+        print(form.email_address.data + " is created")
+
+        if registration_result.is_data_created:
+            flash(f'{registration_result.message}!', 'success')
+        else:
+            flash(f'{registration_result.message}!', 'fail')
+
+        return redirect(url_for('admin_panel', person_id=registration_result.person_id))
+
+    return render_template('example_adminSignUp.html', title='Register', form=form) #???? should return jsoN?
+
+
+@app.route('/admin_login', methods=['GET', 'POST'])
+def administration_login():
+    form = AdministrationLoginForm()
+
+    if request.method == 'POST' and form.validate_on_submit():
+        admin = Admin.query.filter_by(email_address=form.email_address.data).first()
+
+        if admin.password == form.password.data:
+            return redirect(url_for('admin_panel', person_id=admin.id))
+        else:
+            flash('wrong password!', 'fail')
+
+    return render_template('example_adminLogin.html', title='AdministrationLogin', form=form)
+
+
+@app.route('/adminPanel/<person_id>', methods=['GET', 'POST'])
+def admin_panel(person_id):
+    admin = Admin.query.filter_by(id=person_id).first()
+    print(admin.email_address)
+    if admin is not None:
+        return render_template('example_adminPanel.html', admin=admin)
+    else:
+        return render_template('404.html')
+
+
 @app.route('/donate/<person_id>', methods=['GET', 'POST'])
 def donate(person_id):
+    hostname = socket.gethostname()
+    host_id = socket.gethostbyname(hostname)
+
+    if os.environ["ENVIRONMENT"] == 'DEV':
+        host_id = "127.0.0.1:5000"
+    else:
+        host_id = host_id + ":80"
+
+    print('host: ' + host_id)
     user = User.query.filter_by(id=person_id).first()
     if user is not None:
-        return render_template('paymentPage.html', user=user)
+        return render_template('paymentPage.html', user=user, host_id=host_id)
     else:
         return render_template('404.html')
 

@@ -13,6 +13,12 @@ class User(db.Model):
     donation_transaction_info = db.relationship('DonationTransaction', backref='user', lazy=True)
 
 
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email_address = db.Column(db.String(250), nullable=False)
+    password = db.Column(db.String(250), nullable=False)
+
+
 class DonationTransaction(db.Model):
     transaction_id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Integer)
