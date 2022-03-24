@@ -6,6 +6,9 @@
           <div class="image-container align-self-center me-3">
               <h1>{{ admin.email_address }} </h1>
           </div>
+            <li><a href="{{ url_for('administration_signup') }}">Add new admin</a>
+            <li><a href="{{ url_for('signup_user') }}">Add new user having homelessness problem</a>
+            <li><a href="{{ url_for('list_users') }}">List of all people in the system</a>
       </section>
     </div>
 </main>

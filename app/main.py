@@ -119,5 +119,12 @@ def execute(amount, user_id):
     return process_result.json_result
 
 
+@app.route("/list_users")
+def list_users():
+    users = User.query.all()
+    return render_template('example_listUsers.html', users=users)
+
+
+
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')
